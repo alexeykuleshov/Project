@@ -7,7 +7,7 @@ import pprint
 import shutil
 
 workspace = os.path.join('ascii')
-output = os.path.join('output')
+output = os.path.join('lake_example_L01.png - lake_example_L10.png')
 
 # delete directories if existing
 if os.path.exists(workspace):
@@ -27,10 +27,10 @@ name = 'lake_example'
 # --- Setting up the parameters
 # Groundwater heads
 h1 = 100 #in the boundaries
-h2 = 80  # water-level-lake
+h2 = 90  # water-level-lake
 
 # Number of layers
-Nlay = 10
+Nlay = 50
 
 # Number of columns and rows
 # we are assuming that NCol = NRow
@@ -124,8 +124,67 @@ ibound = np.ones((Nlay,N,N))
 #         [ 1.,  1.,  1., ...,  1.,  1.,  1.]]])
 
 
+# Set all elements in the first row to -1
+ibound[:,0,:] = -1 
+
+# Set all elements in the last row to -1
+ibound[:,-1,:] = -1
+
 # Set every first element of every column to -1
 ibound[:,:,0] = -1
+
+# Set every last element of every column to -1
+ibound[:,:,-1] = -1
+
+#result is:
+#array([[[-1., -1., -1., ..., -1., -1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        ..., 
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1., -1., -1., ..., -1., -1., -1.]],
+#
+#       [[-1., -1., -1., ..., -1., -1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        ..., 
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1., -1., -1., ..., -1., -1., -1.]],
+#
+#       [[-1., -1., -1., ..., -1., -1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        ..., 
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1., -1., -1., ..., -1., -1., -1.]],
+#
+#       ..., 
+#       [[-1., -1., -1., ..., -1., -1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        ..., 
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1., -1., -1., ..., -1., -1., -1.]],
+#
+#       [[-1., -1., -1., ..., -1., -1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        ..., 
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1., -1., -1., ..., -1., -1., -1.]],
+#
+#       [[-1., -1., -1., ..., -1., -1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        ..., 
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1.,  1.,  1., ...,  1.,  1., -1.],
+#        [-1., -1., -1., ..., -1., -1., -1.]]])
 
 # set center cell in upper layer to constant head (-1)
 ibound[0,Nhalf,Nhalf] = -1 
@@ -156,22 +215,10 @@ ml.run_model()
 hds = fu.HeadFile(os.path.join(workspace, name+'.hds'))
 h = hds.get_data(kstpkper=(0, 0))
 
-x = y = np.linspace(0, L, N)
-c = plt.contour(x, y, h[0], np.arange(80,100.1,0.2))
-plt.clabel(c, fmt='%2.1f')
-plt.axis('scaled');
-plt.savefig(os.path.join(output, name+'_1.png'))
-plt.close()
-
-x = y = np.linspace(0, L, N)
-c = plt.contour(x, y, h[-1], np.arange(80,100.1,0.2))
-plt.clabel(c, fmt='%1.1f')
-plt.axis('scaled');
-plt.savefig(os.path.join(output, name+'_2.png'))
-plt.close()
-
-z = np.linspace(-H/Nlay/2, -H+H/Nlay/2, Nlay)
-c = plt.contour(x, z, h[:,50,:], np.arange(80,100.1,.2))
-plt.axis('scaled');
-plt.savefig(os.path.join(output, name+'_3.png'))
-plt.close()
+for layer_number in range(0,Nlay-1):
+	x = y = np.linspace(0, L, N)
+	c = plt.contour(x, y, h[layer_number], np.arange(90,100.1,0.2))
+	plt.clabel(c, fmt='%1.1f')
+	plt.axis('scaled');
+	plt.savefig(os.path.join(output, name+'_L'+str(layer_number+1)+'.png'))
+	plt.close()

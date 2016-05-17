@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import flopy.modflow as mf
 import flopy.utils as fu
-import pprint
 import shutil
 
 workspace = os.path.join('ascii')
@@ -199,10 +198,10 @@ start[Nhalf,Nhalf] = h2
 
 # instantiate the modflow-basic package with iBound and startvalues
 bas = mf.ModflowBas(ml,ibound=ibound,strt=start)
-
+ 
 # set the aquifer properties with the lpf-package
 lpf = mf.ModflowLpf(ml, hk=k)
- 
+
 # instantiation of the solver with default values
 pcg = mf.ModflowPcg(ml)
 

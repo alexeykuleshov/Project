@@ -73,56 +73,6 @@ Nhalf = (N-1)/2
 # every cell in the model has to be defined
 # create an 3-dimensional ibound-array with all cells=1
 ibound = np.ones((Nlay,N,N)) 
-# result is:
-# array([[[ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         ..., 
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.]],
-# 
-#        [[ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         ..., 
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.]],
-# 
-#        [[ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         ..., 
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.]],
-# 
-#        ..., 
-#        [[ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         ..., 
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.]],
-# 
-#        [[ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         ..., 
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.]],
-# 
-#        [[ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         ..., 
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.],
-#         [ 1.,  1.,  1., ...,  1.,  1.,  1.]]])
-
 
 # Set every first element of every column to -1
 ibound[:,:,0] = -1
@@ -130,10 +80,19 @@ ibound[:,:,0] = -1
 # set center cell in upper layer to constant head (-1)
 ibound[0,Nhalf,Nhalf] = -1 
 
+# defining the start-values
+# in the calculation only the -1 cells will be considered
+#
+# all values are set to h1
+start = h1 * np.ones((N,N))
+# and the center value is set to h2
+start[Nhalf,Nhalf] = h2
+
+# instantiate the modflow-basic package with iBound and startvalues
+bas = mf.ModflowBas(ml,ibound=ibound,strt=start)
+
 # Create the well package
 # Remember to use zero-based layer, row, column indices!
-
-m = mf.Modflow()
 
 stress_period_data ={
 	0:  [
@@ -147,17 +106,6 @@ stress_period_data ={
 }
 
 wel = mf.ModflowWel(ml, stress_period_data=stress_period_data)
-
-# defining the start-values
-# in the calculation only the -1 cells will be considered
-#
-# all values are set to h1
-start = h1 * np.ones((N,N))
-# and the center value is set to h2
-start[Nhalf,Nhalf] = h2
-
-# instantiate the modflow-basic package with iBound and startvalues
-bas = mf.ModflowBas(ml,ibound=ibound,strt=start)
 
 # set the aquifer properties with the lpf-package
 lpf = mf.ModflowLpf(ml, hk=k)
@@ -175,21 +123,21 @@ hds = fu.HeadFile(os.path.join(workspace, name+'.hds'))
 h = hds.get_data(kstpkper=(0, 1))
 
 x = y = np.linspace(0, L, N)
-c = plt.contour(x, y, h[0], np.arange(80,100.1,0.9))
+c = plt.contour(x, y, h[0], np.arange(80,100.1,0.6))
 plt.clabel(c, fmt='%2.1f')
 plt.axis('scaled');
 plt.savefig(os.path.join(output, name+'_1.png'))
 plt.close()
 
 x = y = np.linspace(0, L, N)
-c = plt.contour(x, y, h[-1], np.arange(80,100.1,0.9))
+c = plt.contour(x, y, h[-1], np.arange(80,100.1,0.6))
 plt.clabel(c, fmt='%1.1f')
 plt.axis('scaled');
 plt.savefig(os.path.join(output, name+'_2.png'))
 plt.close()
 
 z = np.linspace(-H/Nlay/2, -H+H/Nlay/2, Nlay)
-c = plt.contour(x, z, h[:,5,:], np.arange(80,100.1,.9))
+c = plt.contour(x, z, h[:,5,:], np.arange(80,100.1,.6))
 plt.axis('scaled');
 plt.savefig(os.path.join(output, name+'_3.png'))
 plt.close()
